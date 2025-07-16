@@ -16,7 +16,7 @@ export default function Home() {
 
         // ✅ Delay 2 seconds before redirecting
         setTimeout(() => {
-          window.location.href = 'https://invest.civilizationx.co.uk/';
+          window.location.href = 'https://investor-workflow-ui.vercel.app';
         }, 2000);
       } else {
         setStatus('Not a member');
