@@ -82,10 +82,16 @@ export default async function handler(req, res) {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent to', form.email);
-
-    return res.status(200).json({ success: true });
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent to', form.email);
+      } catch (emailErr) {
+        console.error('❌ Email failed to send:', emailErr);
+        // don't throw error — still return success to frontend
+      }
+      
+      return res.status(200).json({ success: true });
+      
 
   } catch (error) {
     console.error('❌ Submission failed:', error);
