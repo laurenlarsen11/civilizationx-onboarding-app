@@ -23,11 +23,12 @@ export default async function handler(req, res) {
     records.forEach(record => {
       const firstEmail = record.get('First Email Sent');
       const responded = record.get('Responded');
+      const followupSent = record.get('Follow-up Sent');
 
-      if (firstEmail && !responded) {
+      if (firstEmail && !responded && !followupSent) {
         const emailSentDate = new Date(firstEmail);
         const daysSince = Math.floor((today - emailSentDate) / (1000 * 60 * 60 * 24));
-        
+
         if (daysSince >= 4) {
           recordsToFollowUp.push(record);
         }
@@ -53,12 +54,18 @@ If you're available, please feel free to book a short intro call here: https://c
 Looking forward to hearing from you!
 
 — Mabel  
-CivilizationX`,
+CivilizationX`
     };
 
     try {
       await transporter.sendMail(mailOptions);
       console.log(`Follow-up sent to ${email}`);
+
+      // ✅ Mark follow-up as sent in Airtable
+      await base('Investors').update(record.id, {
+        'Follow-up Sent': true
+      });
+
     } catch (error) {
       console.error(`Failed to send to ${email}:`, error);
     }
@@ -66,3 +73,4 @@ CivilizationX`,
 
   res.status(200).json({ message: `Processed ${recordsToFollowUp.length} follow-ups` });
 }
+
