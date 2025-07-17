@@ -2,7 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/api/submit-investor": "pages/api/submit-investor.js",
-  "/": "pages/index.js",
-  "/join": "pages/join.js"
+  "/join": "pages/join.js",
+  "/": "pages/index.js"
 }
