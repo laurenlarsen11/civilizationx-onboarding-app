@@ -42,20 +42,20 @@ export default async function handler(req, res) {
     const name = record.get('First Name') || "there";
 
     const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: email,
-      subject: `Just checking in, ${name}`,
-      text: `Hi ${name},
-
-Just following up on our invitation to join CivilizationX. We'd love to connect with you and share how you can get involved.
-
-If you're available, please feel free to book a short intro call here: https://calendar.app.google/NLgc8M2hByd65TYt8
-
-Looking forward to hearing from you!
-
-— Mabel  
-CivilizationX`
-    };
+        from: process.env.GMAIL_USER,
+        to: email,
+        subject: `Just checking in, ${name}`,
+        text: `Hi ${name},
+      
+      Just circling back in case you missed my last message. CivilizationX is growing quickly, and we’re excited to bring on new members who are passionate about AI infrastructure and early-stage innovation.
+      
+      Joining means access to exclusive deal flow, hands-off investing, and a vibrant network of founders and fellow investors.
+      
+      I’d love to schedule a quick intro call to see if there’s a good fit. Are you free for 20 minutes next week? You can also pick a time that works best for you here: https://calendar.app.google/NLgc8M2hByd65TYt8
+      
+      Best regards,  
+      The CivilizationX Team`,
+      };      
 
     try {
       await transporter.sendMail(mailOptions);
