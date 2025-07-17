@@ -37,7 +37,7 @@ export default async function handler(req, res) {
           "Investment Experience": form.experience,
           "Angel Investment Made?": form.angel,
           "Investment Areas": form.areas,
-          "First Email Sent At": new Date().toISOString(),
+          "First Email Sent": new Date().toISOString(),
         },
       }),
     });
