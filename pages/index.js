@@ -1,59 +1,74 @@
+// pages/index.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 export default function Home() {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [greeting, setGreeting] = useState('');
   const router = useRouter();
 
   const handleLogin = async () => {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
+    setLoading(true);
 
-    const data = await res.json();
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    if (data.redirect) {
-      router.push(data.redirect);
-    } else {
-      alert('Login failed.');
+      const data = await res.json();
+
+      if (res.ok) {
+        setGreeting(`Hello, ${data.firstName}`);
+        setTimeout(() => {
+          router.push('https://investor-workflow-ui.vercel.app');
+        }, 1500); // show greeting briefly before redirect
+      } else {
+        alert('Email not recognized. Try joining as a member.');
+      }
+    } catch (err) {
+      console.error('Login failed', err);
+      alert('Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleLogin();
-  };
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Sign in to CivilizationX</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md text-center">
+        <h1 className="text-2xl font-semibold mb-4">Welcome to CivilizationX</h1>
 
-        <div className="space-y-4">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-black focus:outline-none focus:ring-1"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
+        {greeting ? (
+          <p className="text-green-600 text-xl mb-4">{greeting}</p>
+        ) : (
+          <>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-2 border rounded-md mb-4"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
+            >
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </>
+        )}
+
+        <div className="mt-4">
           <button
-            onClick={handleLogin}
-            className="w-full rounded-md bg-black px-4 py-2 text-white hover:bg-gray-900 transition"
+            onClick={() => router.push('/join')}
+            className="text-sm text-blue-600 hover:underline"
           >
-            Continue
+            Join as Member
           </button>
-        </div>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            Not a member?{' '}
-            <a href="/join" className="font-medium text-black hover:underline">
-              Join as Member
-            </a>
-          </p>
         </div>
       </div>
     </div>

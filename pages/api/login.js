@@ -1,35 +1,30 @@
+// pages/api/login.js
 import Airtable from 'airtable';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-
   const { email } = req.body;
 
   try {
-    let userFound = false;
-    let userName = '';
+    const records = await base('Investors')
+      .select({
+        filterByFormula: `{Email} = '${email}'`,
+        maxRecords: 1,
+      })
+      .firstPage();
 
-    await base('Investors').select().eachPage((records, fetchNextPage) => {
-      records.forEach(record => {
-        if (record.get('Email') === email) {
-          userFound = true;
-          userName = record.get('First Name');
-        }
-      });
-      fetchNextPage();
-    });
+    if (records.length > 0) {
+      const record = records[0];
+      const firstName = record.get('First Name') || 'there';
 
-    if (userFound) {
-      return res.status(200).json({
-        redirect: `https://investor-workflow-ui.vercel.app?name=${encodeURIComponent(userName)}`
-      });
+      res.status(200).json({ firstName });
     } else {
-      return res.status(200).json({ redirect: '/join' });
+      res.status(404).json({ message: 'Email not found' });
     }
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ message: 'Server error' });
   }
 }
+
