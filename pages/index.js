@@ -1,61 +1,62 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { useRouter } from 'next/router';
 
 export default function Home() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('');
-  const [name, setName] = useState('');
+  const router = useRouter();
 
-  const checkMember = async () => {
-    setStatus('Checking...');
-    try {
-      const res = await axios.post('/api/check-member', { email });
-      if (res.data.exists) {
-        setName(res.data.name);               // store first name
-        setStatus('Member');                 // show "Hello, name"
+  const handleLogin = async () => {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
 
-        // ✅ Delay 2 seconds before redirecting
-        setTimeout(() => {
-          window.location.href = 'https://investor-workflow-ui.vercel.app';
-        }, 2000);
-      } else {
-        setStatus('Not a member');
-      }
-    } catch (e) {
-      console.error(e);
-      setStatus('Error checking membership');
+    const data = await res.json();
+
+    if (data.redirect) {
+      router.push(data.redirect);
+    } else {
+      alert('Login failed.');
     }
   };
 
-  return (
-    <main className="flex flex-col items-center justify-center h-screen p-4">
-      <h1 className="text-3xl mb-4">Welcome to CivilizationX</h1>
-      <input
-        className="border p-2 mb-2 w-full max-w-sm"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button className="bg-black text-white px-4 py-2" onClick={checkMember}>
-        Login
-      </button>
-      <button
-        className="mt-2 underline"
-        onClick={() => (window.location.href = '/join')}
-      >
-        Join as Member
-      </button>
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleLogin();
+  };
 
-      {status === 'Member' && (
-        <p className="mt-4 text-green-700 text-lg">Hello, {name}</p>
-      )}
-      {status === 'Not a member' && (
-        <p className="mt-4">Not found. Please join.</p>
-      )}
-      {status === 'Error checking membership' && (
-        <p className="mt-4 text-red-500">Something went wrong.</p>
-      )}
-    </main>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
+        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Sign in to CivilizationX</h1>
+
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-black focus:outline-none focus:ring-1"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            onClick={handleLogin}
+            className="w-full rounded-md bg-black px-4 py-2 text-white hover:bg-gray-900 transition"
+          >
+            Continue
+          </button>
+        </div>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            Not a member?{' '}
+            <a href="/join" className="font-medium text-black hover:underline">
+              Join as Member
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
