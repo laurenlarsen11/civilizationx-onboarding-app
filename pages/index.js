@@ -1,76 +1,106 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
 
 export default function Home() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [greeting, setGreeting] = useState("");
   const router = useRouter();
 
   const handleLogin = async () => {
+    setError("");
+    if (!email) {
+      setError("Please enter your email.");
+      return;
+    }
+
     setLoading(true);
-    setMessage('');
 
     try {
-      const res = await fetch('/api/check-member', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (data.found) {
-        setMessage(`Hello, ${data.firstName}! Redirecting...`);
+      if (response.ok && data.exists) {
+        setGreeting(`Hello, ${data.firstName}`);
         setTimeout(() => {
-          window.location.href = 'https://investor-workflow-ui.vercel.app';
-        }, 2000);
+          router.push("https://investor-workflow-ui.vercel.app");
+        }, 1500);
       } else {
-        router.push('/join');
+        router.push("/join");
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setMessage('Something went wrong. Please try again.');
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
-
-  const handleJoin = () => {
-    router.push('/join');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1869c2] to-[#021d39] flex items-center justify-center px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Welcome to CivilizationX</h1>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="w-full p-3 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+    <>
+      <Head>
+        <title>CivilizationX Login</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Bebas+Neue&display=swap"
+          rel="stylesheet"
         />
-        <button
-          onClick={handleLogin}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition mb-2"
-          disabled={loading}
-        >
-          {loading ? 'Checking...' : 'Login'}
-        </button>
-        <button
-          onClick={handleJoin}
-          className="text-blue-600 hover:underline text-sm"
-        >
-          Join as Member
-        </button>
+      </Head>
 
-        {message && <p className="mt-4 text-gray-700">{message}</p>}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1869c2] to-[#021d39] px-4">
+        <div className="bg-white bg-opacity-90 p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "Bebas Neue, sans-serif" }}>
+            Welcome to CivilizationX
+          </h1>
+          <p className="text-gray-700 mb-6" style={{ fontFamily: "Manrope, sans-serif" }}>
+            Enter your email to get started
+          </p>
+
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+          />
+
+          <button
+            onClick={handleLogin}
+            disabled={loading}
+            className="w-full bg-[#1869c2] hover:bg-[#145aa1] text-white font-semibold py-2 px-4 rounded-full transition-all"
+          >
+            {loading ? "Checking..." : "Login"}
+          </button>
+
+          {greeting && (
+            <p className="text-green-600 text-sm mt-4" style={{ fontFamily: "Manrope, sans-serif" }}>
+              {greeting}
+            </p>
+          )}
+          {error && (
+            <p className="text-red-500 text-sm mt-4" style={{ fontFamily: "Manrope, sans-serif" }}>
+              {error}
+            </p>
+          )}
+
+          <div className="mt-6">
+            <a
+              href="/join"
+              className="text-sm text-[#1869c2] hover:underline font-medium"
+              style={{ fontFamily: "Manrope, sans-serif" }}
+            >
+              Join as Member
+            </a>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-
-
-
 
