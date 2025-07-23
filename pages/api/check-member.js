@@ -1,32 +1,29 @@
-import fetch from 'node-fetch';
+import Airtable from 'airtable';
+
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
 
 export default async function handler(req, res) {
-    const { email } = req.body;
-  
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableName = process.env.AIRTABLE_TABLE_NAME;
-  
-    const url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=({Email Address}="${email}")`;
-  
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
-  
-      const data = await response.json();
-  
-      if (data.records.length > 0) {
-        const name = data.records[0].fields["First Name"] || "Investor";
-        res.status(200).json({ exists: true, name });
-      } else {
-        res.status(200).json({ exists: false });
-      }
-    } catch (error) {
-      console.error("Airtable error:", error);
-      res.status(500).json({ error: "Something went wrong." });
+  const { email } = req.body;
+
+  try {
+    const records = await base('Investors')
+      .select({
+        filterByFormula: `{Email Address} = '${email}'`,
+        maxRecords: 1,
+      })
+      .firstPage();
+
+    if (records.length > 0) {
+      const record = records[0];
+      const firstName = record.get('First Name') || '';
+      res.status(200).json({ found: true, firstName });
+    } else {
+      res.status(200).json({ found: false });
     }
+  } catch (error) {
+    console.error('Error checking member:', error);
+    res.status(500).json({ error: 'Server error' });
   }
+}
+
   
